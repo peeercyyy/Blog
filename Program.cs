@@ -28,6 +28,20 @@ class Program
         // Petr: 2
         // Elena: 3
 
+        var commentsCount = context.BlogPosts
+            .SelectMany(post => post.Comments)
+            .GroupBy(comment => comment.UserName)
+            .Select(group => new
+            {
+                User = group.Key,
+                CommentsCount = group.Count()
+            });
+
+        foreach(var comment in commentsCount)
+        {
+            Console.WriteLine($"{comment.User}: {comment.CommentsCount}");
+        }
+
         Console.WriteLine("Posts ordered by date of last comment. Result should include text of last comment:");
         //ToDo: write a query and dump the data to console
         // Expected result (format could be different, e.g. object serialized to JSON is ok):
@@ -35,6 +49,19 @@ class Program
         // Post1: '2020-03-05', '8'
         // Post3: '2020-02-14', '9'
 
+        var postsByLastCommentDate = context.BlogPosts
+            .OrderByDescending(post => post.Comments.Max(comment => comment.CreatedDate))
+            .Select(post => new
+            {
+                post.Title,
+                LastDate = post.Comments.Max(comment => comment.CreatedDate),
+                CommentText = post.Comments.OrderByDescending(c => c.CreatedDate).FirstOrDefault().Text
+            });
+
+        foreach (var post in postsByLastCommentDate)
+        {
+            Console.WriteLine($"{post.Title}: '{post.LastDate:yyyy-MM-dd}', '{post.CommentText}'");
+        }
 
         Console.WriteLine("How many last comments each user left:");
         // 'last comment' is the latest Comment in each Post
